@@ -24,6 +24,7 @@ const Stopwatch = () => {
         setSecondsRemaining(prevSeconds => {
           if (prevSeconds <= 0) {
             clearInterval(id);
+            setIsRunning(false);
             return 0;
           }
           return prevSeconds - 1;
@@ -47,7 +48,6 @@ const Stopwatch = () => {
     const minutes = parseInt(inputMinutes, 10) || 0;
     const seconds = parseInt(inputSeconds, 10) || 0;
 
-    // Validation for minutes and seconds
     if (isNaN(minutes) || minutes < 0) {
       Alert.alert('Invalid Input', 'Minutes must be a non-negative number.');
       return;
@@ -86,52 +86,64 @@ const Stopwatch = () => {
   useEffect(() => {
     if (secondsRemaining === 0 && isTimeSet) {
       Alert.alert('Time Ended!', 'Your timer has completed.');
+      setIsTimeSet(false);
     }
   }, [secondsRemaining, isTimeSet]);
 
   return (
     <View style={styles.container}>
       {!isTimeSet ? (
-        <View style={styles.inputContainer}>
+        <View style={styles.card}>
           <Text style={styles.title}>Set Timer</Text>
-          <View style={styles.timeInputs}>
-            <TextInput
-              style={styles.input}
-              value={inputMinutes}
-              onChangeText={setInputMinutes}
-              keyboardType="numeric"
-              placeholder="Minutes"
-            />
-            <TextInput
-              style={styles.input}
-              value={inputSeconds}
-              onChangeText={setInputSeconds}
-              keyboardType="numeric"
-              placeholder="Seconds"
-            />
+          <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                value={inputMinutes}
+                onChangeText={setInputMinutes}
+                keyboardType="numeric"
+                placeholder="00"
+                maxLength={2}
+              />
+              <Text style={styles.inputLabel}>min</Text>
+            </View>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={styles.input}
+                value={inputSeconds}
+                onChangeText={setInputSeconds}
+                keyboardType="numeric"
+                placeholder="00"
+                maxLength={2}
+              />
+              <Text style={styles.inputLabel}>sec</Text>
+            </View>
           </View>
           <TouchableOpacity style={styles.setButton} onPress={setEndTime}>
             <Text style={styles.setButtonText}>Set Timer</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <React.Fragment>
-          <View style={styles.progressCircle}>
+        <View style={styles.card}>
+          <View style={styles.timeDisplay}>
             <Text style={styles.time}>{formatTime(secondsRemaining)}</Text>
           </View>
           <View style={styles.buttonsContainer}>
             <TouchableOpacity
-              style={styles.controlButton}
+              style={[
+                styles.controlButton,
+                isRunning ? styles.pauseButton : styles.startButton,
+              ]}
               onPress={toggleTimer}>
               <Text style={styles.controlButtonText}>
                 {isRunning ? 'Pause' : 'Start'}
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.controlButton} onPress={timerReset}>
+            <TouchableOpacity style={styles.resetButton} onPress={timerReset}>
               <Text style={styles.controlButtonText}>Reset</Text>
             </TouchableOpacity>
           </View>
-        </React.Fragment>
+        </View>
       )}
     </View>
   );
@@ -140,78 +152,100 @@ const Stopwatch = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f8f8f8',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    padding: 20,
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 24,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    width: '90%',
+    maxWidth: 400,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontWeight: '600',
     color: '#333',
+    marginBottom: 24,
+    textAlign: 'center',
   },
   inputContainer: {
-    alignItems: 'center',
-  },
-  timeInputs: {
     flexDirection: 'row',
-    marginBottom: 20,
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   input: {
-    height: 50,
-    borderColor: '#ddd',
+    height: 64,
+    width: 80,
     borderWidth: 1,
+    borderColor: '#ddd',
     borderRadius: 8,
-    paddingHorizontal: 15,
-    fontSize: 18,
-    marginHorizontal: 10,
-    width: 100,
+    paddingHorizontal: 16,
+    fontSize: 20,
     textAlign: 'center',
-    backgroundColor: '#fff',
+    marginRight: 8,
+  },
+  inputLabel: {
+    fontSize: 16,
+    color: '#777',
   },
   setButton: {
-    backgroundColor: '#28a745',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
+    backgroundColor: '#2196F3',
+    paddingVertical: 16,
     borderRadius: 8,
+    alignSelf: 'stretch',
   },
   setButtonText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '500',
+    textAlign: 'center',
   },
-  progressCircle: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 10,
-    borderColor: '#007bff',
-    justifyContent: 'center',
+  timeDisplay: {
+    marginBottom: 32,
     alignItems: 'center',
-    marginBottom: 20,
-    backgroundColor: '#e6f7ff',
   },
   time: {
-    fontSize: 48,
+    fontSize: 64,
     fontWeight: 'bold',
-    color: '#007bff',
+    color: '#333',
   },
   buttonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '80%',
+    justifyContent: 'space-around',
   },
   controlButton: {
-    backgroundColor: '#007bff',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     borderRadius: 8,
-    marginHorizontal: 10,
+  },
+  startButton: {
+    backgroundColor: '#4CAF50',
+  },
+  pauseButton: {
+    backgroundColor: '#F44336',
+  },
+  resetButton: {
+    backgroundColor: '#FFEB3B',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 8,
   },
   controlButtonText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '500',
   },
 });
 
