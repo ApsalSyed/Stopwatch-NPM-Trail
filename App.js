@@ -18,7 +18,7 @@ function App() {
 
 
   return (
-    <SafeAreaView style={{flex:1,backgroundColor:'lightblue'}}>
+    <SafeAreaView style={{flex:1 ,backgroundColor:'#1c1c1c'}}>
       <Stopwatch/>
     </SafeAreaView>
   );
